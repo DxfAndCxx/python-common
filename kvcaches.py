@@ -28,24 +28,26 @@ class KvCache(object):
     last_save_time_key = "last_save_time_key"
     caches_key = "caches_key"
     mutex = threading.Lock()
-    _flages = True
 
     def __init__(self, cache=None, save_timeout = 2*60, timeout=2*60*60):
-        if self._flages:
-            self.timeout = timeout
-            self.cache_file = cache
-            self.save_timeout = save_timeout
-            self.save_time = time.time()
-            self.caches = { }
-            self._loads()
+        if self.singleton:
+            if not self.__init_symbol:
+                return
+        self.timeout = timeout
+        self.cache_file = cache
+        self.save_timeout = save_timeout
+        self.save_time = time.time()
+        self.caches = { }
+        self._loads()
 
     def __new__(cls, *agrs, **kw):
+        cls.__init_symbol = False
+
         if cls.singleton:
-            cls._flages = False
             if not hasattr(cls, "_instance"):
                 orig = super(KvCache, cls)
                 cls._instance = orig.__new__(cls, *agrs, **kw)
-                cls._flages = True
+                cls.__init_symbol = True
 
             return cls._instance
 
