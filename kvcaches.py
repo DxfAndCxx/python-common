@@ -11,6 +11,7 @@ k-v缓存模块
 2, 可设置超时时间
 3, 可设置持久化保存频率
 4, 加锁: 保证多线程能安全读写同一资源
+5, 单例模式开关
 
 """
 
@@ -22,21 +23,30 @@ import threading
 import logging
 
 class KvCache(object):
+
+    singleton = False
+    save_time = time.time()
+    caches = { }
+    last_save_time_key = "last_save_time_key"
+    caches_key = "caches_key"
+    mutex = threading.Lock()
+
     def __init__(self, cache=None, save_timeout = 2*60, timeout=2*60*60):
-        self.timeout = timeout
-        self.cache_file = cache
-        self.save_timeout = save_timeout
+        if not hasattr(self, "_instance"):
+            self.timeout = timeout
+            self.cache_file = cache
+            self.save_timeout = save_timeout
+            self._loads()
 
-        self.save_time = time.time()
-        self.caches = { }
+    def __new__(cls, *agrs, **kw):
+        if cls.singleton:
+            if not hasattr(cls, "_instance"):
+                orig = super(KvCache, cls)
+                cls._instance = orig.__new__(cls, *agrs, **kw)
+            return cls._instance
 
-        self.last_save_time_key = "last_save_time_key"
-        self.caches_key = "caches_key"
-
-        self.mutex = threading.Lock()
-
-        self._loads()
-
+        orig = super(KvCache, cls)
+        return orig.__new__(cls, *agrs, **kw)
 
     def _loads(self):
         if not self.cache_file:
