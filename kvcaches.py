@@ -25,24 +25,28 @@ import logging
 class KvCache(object):
 
     singleton = False
-    save_time = time.time()
-    caches = { }
     last_save_time_key = "last_save_time_key"
     caches_key = "caches_key"
     mutex = threading.Lock()
+    _flages = True
 
     def __init__(self, cache=None, save_timeout = 2*60, timeout=2*60*60):
-        if not hasattr(self, "_instance"):
+        if self._flages:
             self.timeout = timeout
             self.cache_file = cache
             self.save_timeout = save_timeout
+            self.save_time = time.time()
+            self.caches = { }
             self._loads()
 
     def __new__(cls, *agrs, **kw):
         if cls.singleton:
+            cls._flages = False
             if not hasattr(cls, "_instance"):
                 orig = super(KvCache, cls)
                 cls._instance = orig.__new__(cls, *agrs, **kw)
+                cls._flages = True
+
             return cls._instance
 
         orig = super(KvCache, cls)
@@ -150,21 +154,23 @@ class KvCache(object):
 
 
 def testkvcache():
-    cache = "testlog"
-    KV = KvCache(cache, 1, 2)
+    KvCache.singleton = True
+    KV = KvCache()
 
     data = {"a":"aaaaaaa","b":"bbbbbbbbb"}
     for d in data.keys():
         v = KV.get(d)
         if not v:
             KV.set(d, data.get(d))
-            print KV.caches
-        time.sleep(2)
 
     KV.set("c","ccccccccc")
     KV.set("d","ddddddddd")
 
     print KV.caches
+
+    kv2 = KvCache()
+    print "------------------"
+    print kv2.caches
 
 if __name__ == "__main__":
     testkvcache()
