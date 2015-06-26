@@ -26,10 +26,11 @@ import imp
 class Plugins(object):
     URLS = [ ]
     PLUGINS = [ ]
-    def __init__(self, path, *attrs):
+    def __init__(self, path, *attrs, **kwagrs):
         self.path = path
         self.attrs = attrs
         self.infos = { }
+        self.plugins_ignore = kwagrs.get("ignore",[ ])
         self.__load_views()
         self.__logurls()
 
@@ -44,12 +45,18 @@ class Plugins(object):
             if not module.endswith(".py"):
                 continue
 
+            module_name = module[0:-3]
+            if module in self.plugins_ignore:
+                continue
+            if module_name in self.plugins_ignore:
+                continue
+
             module_path = os.path.join(self.path, module)
-            module_loaded = imp.load_source(module_path[0:-3], module_path)
+            module_loaded = imp.load_source(module_name, module_path)
             info = self.__module_init(module_loaded)
 
             if info:
-                self.infos[module[0:-3]] = info
+                self.infos[module_name] = info
 
     def __module_init(self, module):
         info = [module]
@@ -116,5 +123,6 @@ if __name__ == "__main__":
     #filename=".log",
     )
 
-    plugins = Plugins("/home/cxx/github/DxfAndCxx/python-common/plugins", "name", "urls")
+    path = "/home/cxx/github/DxfAndCxx/python-common/plugins"
+    plugins = Plugins(path, "name", "urls", ignore=["test1"])
     ulrs = plugins.get_urls()
