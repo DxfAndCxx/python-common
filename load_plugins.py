@@ -52,7 +52,7 @@ class Plugins(object):
                 continue
 
             module_path = os.path.join(self.path, module)
-            module_loaded = imp.load_source(module_name, module_path)
+            module_loaded = imp.load_source(module_path[0:-3], module_path)
             info = self.__module_init(module_loaded)
 
             if info:
