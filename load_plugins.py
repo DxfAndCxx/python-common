@@ -9,12 +9,14 @@
 现在把它抽象出来 用于可加载web插件的的通用模块,
 目前,这种思想已用于到cottle和sunshine中
 
-Plugins在初始化时需要两个参数:
+Plugins在初始化时需要以下参数:
     path : 加载插件的目录
     attr : 自动加载的模块中的 属性
            加载的模块中必须要有这两个属性,否则会报错
            attr[0]:为模块名字, 会用于url的前缀
            attr[1]:模块中的url集
+    **kwagrs: ignore: 不被加载的模块 type:list
+
 通过Plugin.URLS可以得到 url和视图函数对应的list
 
 """
