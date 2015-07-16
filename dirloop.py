@@ -6,14 +6,18 @@
 # Version : v1.0.1
 
 import os
+IGNORE = [".pyc",".git",".log"]
+PROMPT = [".h",".c",".py",".sh"]
 
 
 class Dir(object):
     def __init__(self, path, ignore_file=None, prompt_file=None, depth=-1):
         self.path = os.path.normpath(path)
         self.depth = depth
-        self._ignores = self._load_file(ignore_file)
-        self._prompts = self._load_file(prompt_file)
+        # self._ignores = self._load_file(ignore_file)
+        # self._prompts = self._load_file(prompt_file)
+        self._ignores = IGNORE
+        self._prompts = PROMPT
 
         self.DIRS = [ ]
         self._load_path(path)
@@ -64,7 +68,10 @@ class Dir(object):
 
             abs_path = os.path.join(path,d)
             if os.path.isdir(abs_path):
+                dir_path = abs_path[len(self.path)+1:]
+                self.DIRS.append(dir_path)
                 self._load_path(abs_path)
+
             else:
                 if splits[1] not in self._prompts:
                     continue
@@ -74,12 +81,26 @@ class Dir(object):
     def get_paths(self):
         return self.DIRS
 
+    def match(self, word):
+        for d in self.DIRS:
+            if word in d:
+                return True
+        else:
+            return False
 
+    def get_match(self, word):
+        tmp = [ ]
+        for d in self.DIRS:
+            if word in d:
+                tmp.append(d)
+
+        tmp = sorted(tmp)
+        return tmp
 
 
 if __name__ == "__main__":
-    dirs = Dir("/home/cxx/github/DxfAndCxx/sunshine", \
-        "/home/cxx/github/DxfAndCxx/python-common/ignore",\
-        "/home/cxx/github/DxfAndCxx/python-common/prompt")
-    print dirs.get_all_path()
+    dirs = Dir("/home/cxx/github/DxfAndCxx/sunshine")
+    word = "s"
+    if dirs.match(word):
+        print dirs.get_match(word)
 
